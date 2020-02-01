@@ -20,6 +20,7 @@ class App {
     this.addQuestion = this.addQuestion.bind(this);
     this.changeQuestion = this.changeQuestion.bind(this);
     this.editClickHandler = this.editClickHandler.bind(this);
+    this.removeClickHandler = this.removeClickHandler.bind(this);
     // add GET request
   }
 
@@ -42,6 +43,10 @@ class App {
     const list = document.querySelector(".collection");
 
     list.addEventListener("click", this.changeQuestion);
+
+    list.addEventListener("click", this.editClickHandler);
+
+    list.addEventListener("click", this.removeClickHandler);
   }
 
   renderForm() {
@@ -73,8 +78,8 @@ class App {
 
   renderInputField(text) {
     return `<div class="edit">
-        <input type="text" class="validate" name="question" value="${text}"/>
-        <a href="#!" class="secondary-content pt-30" name="action" data-edit="edit">
+        <input type="text" class="validate active" name="question" value="${text}"/>
+        <a href="#!" class="secondary-content pt-35" name="action" data-edit="edit">
           <i class="material-icons fs-24">edit</i>
         </a>
       </div>
@@ -87,7 +92,7 @@ class App {
             ${date}
           </p>
           <span class="title">${text}</span>
-          <a href="#!" class="secondary-content"
+          <a href="#!" class="secondary-content" data-action="delete"
             ><i class="material-icons">delete</i></a
           >
         </li>`;
@@ -135,46 +140,55 @@ class App {
     if (e.target.tagName !== "SPAN") {
       return;
     }
+
     const spanContent = e.target.textContent;
 
-    const spanCollection = document.querySelectorAll(".title");
+    this.addToScreen(e.target, "afterend", this.renderInputField(spanContent));
 
-    spanCollection.forEach(el => {
-      if (spanContent === el.textContent) {
-        this.addToScreen(el, "beforebegin", this.renderInputField(spanContent));
-
-        el.remove();
-      }
-    });
-
-    this.addEditListener();
+    e.target.remove();
   }
 
+  removeQuestion(id) {
+    this.list = this.list.filter(item => item.id !== id);
+  }
+
+  removeClickHandler(e) {
+    e.preventDefault();
+
+    if (e.target.innerHTML !== "delete") {
+      return;
+    }
+
+    const deleteLink = e.target.parentNode;
+    const item = deleteLink.parentNode;
+
+    const itemId = Number(item.dataset.id);
+
+    this.removeQuestion(itemId);
+
+    item.remove();
+  }
 
   editClickHandler(e) {
     e.preventDefault();
 
-    const inputQuestion = document.querySelector('input[name="question"]');
+    if (e.target.innerHTML !== "edit") {
+      return;
+    }
 
-    const items = document.querySelectorAll(".list__item > div");
+    const editBtn = e.target.parentNode;
 
-    items.forEach(el => {
-      if (el.tagName === "DIV") {
-        this.addToScreen(
-          el,
-          "afterend",
-          this.renderSpanElement(inputQuestion.value)
-        );
+    const inputFieldValue = editBtn.parentNode.firstElementChild.value;
 
-        el.remove();
-      }
-    });
-  }
+    const inputField = editBtn.parentNode;
 
-  addEditListener() {
-    const editLink = document.querySelector('a[data-edit="edit"]');
+    this.addToScreen(
+      inputField,
+      "afterend",
+      this.renderSpanElement(inputFieldValue)
+    );
 
-    editLink.addEventListener("click", this.editClickHandler);
+    inputField.remove();
   }
 
   inputChange(e) {
